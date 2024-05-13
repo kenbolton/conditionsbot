@@ -26,3 +26,10 @@ Built by Hudson River Expeditions & klb
 Type ?help command for more info on a command.
 You can also type ?help category for more info on a category.
 
+## Getting Started
+
+Clone the source into a new or existing activated python environment–virtualenv, docker, whatever floats your boat–and `pip install -r requirements.txt` to get everything set up. `python bot.py` will start it running.
+
+Register the bot as a new Discord appliation at the (Developer Portal)[https://discord.com/developers/applications]. The last step is to generate an OAuth2 URL that you paste into a browser that will let you choose which channel to load the bot in.
+
+Alternatively, you can start a chat with the bot directly. I will leave that as an exercise for the reader.
