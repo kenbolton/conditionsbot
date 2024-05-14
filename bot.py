@@ -95,8 +95,8 @@ async def locations(ctx, location: str=0):
         else:
             await ctx.send(_make_msg(station, msg))
     for key, station in stations.items():
-        msg = _make_msg(msg)
-    await ctx.send(msg)
+        msg = _make_msg(station, msg)
+        await ctx.send(msg)
 
 
 @bot.command()
