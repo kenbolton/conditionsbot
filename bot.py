@@ -51,8 +51,9 @@ async def on_ready():
 @bot.command()
 async def locations(ctx, location: str=0):
     """ List locations and their available data """
-    def _make_msg(station, msg):
-        msg += "{}:\n".format(station['name'])
+    def _make_msg(key: str, station: str, msg: str):
+        msg += "{}:".format(station['name'])
+        msg += " `{}`\n".format(key)
         try:
             _ = station['weather']
         except KeyError:
@@ -80,23 +81,21 @@ async def locations(ctx, location: str=0):
         return msg
     msg = ""
     if not location:
-        stations = STATIONS
+        for key, station in STATIONS.items():
+            await ctx.send(_make_msg(key, station, msg))
+        return
+    try:
+        station = STATIONS[location.lower()]
+    except KeyError:
+        await ctx.send(
+            "`{}` is not a valid station. Try one of these:\n{}".format(
+                location.lower(), ''.join(
+                    '\t`{}`\n'.format(n)
+                    for n in STATIONS.keys()
+                    if 'water' in STATIONS[n].keys())))
+        return
     else:
-        try:
-            station = STATIONS[location.lower()]
-        except KeyError:
-            await ctx.send(
-                "`{}` is not a valid station. Try one of these:\n{}".format(
-                    location, ''.join(
-                        '\t`{}`\n'.format(n)
-                        for n in STATIONS.keys()
-                        if 'water' in STATIONS[n].keys())))
-            return
-        else:
-            await ctx.send(_make_msg(station, msg))
-    for key, station in stations.items():
-        msg = _make_msg(station, msg)
-        await ctx.send(msg)
+        await ctx.send(_make_msg(key, station, msg))
 
 
 @bot.command()
