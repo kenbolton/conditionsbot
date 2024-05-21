@@ -137,7 +137,7 @@ async def _water(ctx, location: str=0):
     temp_c = resp.json()['value']['timeSeries'][0]['values'][-1]['value'][-1]['value']
     time = resp.json()['value']['timeSeries'][0]['values'][-1]['value'][-1]['dateTime']
     temp_f = float(temp_c) * (9/5) + 32
-    return site_name, time, temp_f, temp_c
+    return site_name, time, "{:.1f}".format(temp_f), temp_c
 
 
 @bot.command()
