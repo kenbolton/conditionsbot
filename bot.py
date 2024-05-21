@@ -118,7 +118,7 @@ async def _water(ctx, location: str=0):
     except KeyError:
         await ctx.send(
             "`{}` is not a valid water temperature station. Try one of these:\n{}".format(
-                location, ''.join(
+                location.lower(), ''.join(
                     '\t`{}`\n'.format(n)
                     for n in STATIONS.keys()
                     if 'water' in STATIONS[n].keys())))
@@ -243,7 +243,7 @@ async def _forecast(ctx, location: str=None):
     except KeyError:
         await ctx.send(
             "`{}` is not a valid weather station. Try one of these:\n{}".format(
-                location, ''.join(
+                location.lower(), ''.join(
                     '\t`{}`\n'.format(n)
                     for n in STATIONS.keys()
                     if 'weather' in STATIONS[n].keys())))
@@ -261,7 +261,7 @@ async def _forecast(ctx, location: str=None):
 async def forecast(ctx, location: str=None):
     resp = await _forecast(ctx, location=location)
     periods = resp.json()['properties']['periods']
-    content = 'Seven day forecast for {}:\n'.format(STATIONS[location]['name'])
+    content = 'Seven day forecast for {}:\n'.format(STATIONS[location.lower()]['name'])
     for period in periods:
         content += '{}: {}\n'.format(period['name'], period['detailedForecast'])
     await ctx.send(content)
@@ -275,7 +275,7 @@ async def currents(ctx, location: str=None):
     mdtable = mdtable.replace('+====+', '+')
     mdtable = "".join([s for s in mdtable.splitlines(True) if s.strip("\r\n")])
     mdtable = re.sub(r'\|\s..\s\|', '|', mdtable)
-    await ctx.send(str('```{}:\n{}```'.format(location, mdtable)))
+    await ctx.send(str('```{}:\n{}```'.format(location.lower(), mdtable)))
 
 
 async def _currents(ctx, location: str=None):
@@ -287,7 +287,7 @@ async def _currents(ctx, location: str=None):
     except KeyError:
         await ctx.send(
             '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
-                location, ''.join(
+                location.lower(), ''.join(
                     '\t`{}`\n'.format(n)
                     for n in STATIONS.keys()
                     if 'currents' in STATIONS[n].keys())))
@@ -317,7 +317,7 @@ async def tides(ctx, location: str=None):
     except KeyError:
         await ctx.send(
             '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
-                location, ''.join(
+                location.lower(), ''.join(
                     '\t`{}`\n'.format(n)
                     for n in STATIONS.keys()
                     if 'tides' in STATIONS[n].keys())))
@@ -348,7 +348,7 @@ async def tides(ctx, location: str=None):
     mdtable = mdtable.replace('+====+', '+')
     mdtable = "".join([s for s in mdtable.splitlines(True) if s.strip("\r\n")])
     mdtable = re.sub(r'\|\s..\s\|', '|', mdtable)
-    await ctx.send(str('```{}:\n{}```'.format(location, mdtable)))
+    await ctx.send(str('```{}:\n{}```'.format(location.lower(), mdtable)))
 
     
 @bot.command()
@@ -385,7 +385,7 @@ async def _alerts(ctx, location: str=None):
     except KeyError:
         await ctx.send(
             "`{}` is not a valid weather station. Try one of these:\n{}".format(
-                location, ''.join(
+                location.lower(), ''.join(
                     '\t`{}`\n'.format(n)
                     for n in STATIONS.keys()
                     if 'weather' in STATIONS[n].keys())))
