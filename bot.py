@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# This example requires the 'members' and 'message_content' privileged intents to function.
-
 import os
 import re
 import discord
@@ -23,6 +21,7 @@ from stations import STATIONS
 """
 sudo pm2 start "/home/ubuntu/conditionsbot/bin/python /home/ubuntu/conditionsbot/bot.py" --name "conditionsbot"
 sudo pm2 restart conditionsbot
+sudo pm2 log conditionsbot
 """
 
 load_dotenv()
