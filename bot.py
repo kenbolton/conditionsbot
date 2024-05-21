@@ -83,7 +83,7 @@ async def locations(ctx, location: str=0):
         stations = STATIONS
     else:
         try:
-            station = STATIONS[location]
+            station = STATIONS[location.lower()]
         except KeyError:
             await ctx.send(
                 "`{}` is not a valid station. Try one of these:\n{}".format(
@@ -115,7 +115,7 @@ async def _water(ctx, location: str=0):
     if not location:
         location = ctx.channel.name
     try:
-        station_id = STATIONS[location]['water']
+        station_id = STATIONS[location.lower()]['water']
     except KeyError:
         await ctx.send(
             "`{}` is not a valid water temperature station. Try one of these:\n{}".format(
@@ -240,7 +240,7 @@ async def _forecast(ctx, location: str=None):
     if not location:
         location = ctx.channel.name
     try:
-        station_id = STATIONS[location]['weather']
+        station_id = STATIONS[location.lower()]['weather']
     except KeyError:
         await ctx.send(
             "`{}` is not a valid weather station. Try one of these:\n{}".format(
@@ -284,7 +284,7 @@ async def _currents(ctx, location: str=None):
     if not location:
         location = ctx.channel.name
     try:
-        station_id = STATIONS[location]['currents']
+        station_id = STATIONS[location.lower()]['currents']
     except KeyError:
         await ctx.send(
             '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
@@ -314,7 +314,7 @@ async def tides(ctx, location: str=None):
     if not location:
         location = ctx.channel.name
     try:
-        station_id = STATIONS[location]['tides']
+        station_id = STATIONS[location.lower()]['tides']
     except KeyError:
         await ctx.send(
             '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
@@ -382,7 +382,7 @@ async def _alerts(ctx, location: str=None):
     if not location:
         location = ctx.channel.name
     try:
-        _ = STATIONS[location]['weather']
+        _ = STATIONS[location.lower()]['weather']
     except KeyError:
         await ctx.send(
             "`{}` is not a valid weather station. Try one of these:\n{}".format(
@@ -393,8 +393,8 @@ async def _alerts(ctx, location: str=None):
         return
     else:
         point = '{},{}'.format(
-            STATIONS[location]['latitude'],
-            STATIONS[location]['longitude']
+            STATIONS[location.lower()]['latitude'],
+            STATIONS[location.lower()]['longitude']
             )
     alerts_url = 'https://api.weather.gov/alerts/active?point={}'.format(point)
     headers = {
