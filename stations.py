@@ -15,7 +15,7 @@ STATIONS = {
         'latitude': 41.5048,
         'longitude': -73.9695,
     },
-    'coldspring': {
+    'cold-spring': {
         'name': 'Cold Spring',
         'water': '01374019',  # West Point
         'weather': 'OKX/30,67',
@@ -43,7 +43,16 @@ STATIONS = {
         'latitude': 41.8323,
         'longitude': -73.9423,
     },
-    'westpoint': {
+    'norrie-point': {
+        'name': 'Norrie Point',
+        'water': '01359165',  # Albany
+        'weather': 'ALY/72,25',
+        'tides': '8518951',
+        'currents': 'ACT3751',
+        'latitude': 41.8323,
+        'longitude': -73.9423,
+    },
+    'west-point': {
         'name': 'West Point',
         'currents': 'ACT3726_1',
         'weather': 'OKX/30,67',  # Cold Spring

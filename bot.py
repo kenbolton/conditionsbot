@@ -109,7 +109,7 @@ async def all(ctx, location: str=None):
 
 @bot.command()
 async def _water(ctx, location: str=0):
-    """ Display the water tempareture for a location. """
+    """ Display the water temperature for a location. """
     if not location:
         location = ctx.channel.name
     try:
