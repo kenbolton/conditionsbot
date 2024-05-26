@@ -31,7 +31,7 @@ DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 description = ''' A bot that grabs data from various sources to populate discord
 with important information for small boats.
 
-Built by Hudson River Expeditions & klb
+Built by Hudson River Expeditions & kb
 '''
 
 intents = discord.Intents.default()
