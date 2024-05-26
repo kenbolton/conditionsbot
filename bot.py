@@ -107,9 +107,8 @@ async def all(ctx, location: str=None):
     await currents(ctx, location=location)
 
 
-@bot.command()
+# @bot.command()
 async def _water(ctx, location: str=0):
-    """ Display the water temperature for a location. """
     if not location:
         location = ctx.channel.name
     try:
@@ -142,20 +141,22 @@ async def _water(ctx, location: str=0):
 
 @bot.command()
 async def water(ctx, location: str=0):
+    """ Display the water temperature for a location. """
     site_name, time, temp_f, temp_c = await _water(ctx, location=location)
     msg = "{}\n{}\n{}°F / {}°C".format(site_name, time, temp_f, temp_c)
     await ctx.send(msg)
 
 
-@bot.command()
-async def current(ctx, location: str=None):
-    df = await _currents(ctx, location=location)
-    text_string = df.to_string()
-    for row in text_string.split('\n'):
-        await ctx.send(row)
-    # for index, row in df.iterrows():
-    #     print(row)
-    #     await ctx.send(row)
+# @bot.command()
+# async def current(ctx, location: str=None):
+#     """ Display the tidal current predictions for a location. """
+#     df = await _currents(ctx, location=location)
+#     text_string = df.to_string()
+#     for row in text_string.split('\n'):
+#         await ctx.send(row)
+#     # for index, row in df.iterrows():
+#     #     print(row)
+#     #     await ctx.send(row)
 
 
 @bot.command()
@@ -234,7 +235,6 @@ async def weather(ctx, location: str=None):
 
 
 async def _forecast(ctx, location: str=None):
-    """ Display the weather forecast for a location. """
     if not location:
         location = ctx.channel.name
     try:
@@ -258,6 +258,7 @@ async def _forecast(ctx, location: str=None):
 
 @bot.command()
 async def forecast(ctx, location: str=None):
+    """ Display the weather forecast for a location. """
     resp = await _forecast(ctx, location=location)
     periods = resp.json()['properties']['periods']
     content = 'Seven day forecast for {}:\n'.format(STATIONS[location.lower()]['name'])
@@ -268,21 +269,27 @@ async def forecast(ctx, location: str=None):
 
 @bot.command()
 async def currents(ctx, location: str=None):
+    """ Display the tidal current predictions for a location. """
+    if not location:
+        location = ctx.channel.name
     df = await _currents(ctx, location=location)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
     mdtable = "".join([s for s in mdtable.splitlines(True) if s.strip("\r\n")])
     mdtable = re.sub(r'\|\s..\s\|', '|', mdtable)
-    await ctx.send(str('```{}:\n{}```'.format(location.lower(), mdtable)))
+    try:
+        loc = STATIONS[location.lower()]['currents']['name']
+    except KeyError:
+        loc = location.lower()
+    await ctx.send(str('```{}:\n{}```'.format(loc, mdtable)))
 
 
 async def _currents(ctx, location: str=None):
-    """ Display the tidal current predictions for a location. """
     if not location:
         location = ctx.channel.name
     try:
-        station_id = STATIONS[location.lower()]['currents']
+        station_id = STATIONS[location.lower()]['currents']['id']
     except KeyError:
         await ctx.send(
             '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
@@ -312,7 +319,7 @@ async def tides(ctx, location: str=None):
     if not location:
         location = ctx.channel.name
     try:
-        station_id = STATIONS[location.lower()]['tides']
+        station_id = STATIONS[location.lower()]['tides']['id']
     except KeyError:
         await ctx.send(
             '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
@@ -347,7 +354,11 @@ async def tides(ctx, location: str=None):
     mdtable = mdtable.replace('+====+', '+')
     mdtable = "".join([s for s in mdtable.splitlines(True) if s.strip("\r\n")])
     mdtable = re.sub(r'\|\s..\s\|', '|', mdtable)
-    await ctx.send(str('```{}:\n{}```'.format(location.lower(), mdtable)))
+    try:
+        loc = STATIONS[location.lower()]['tides']['name']
+    except KeyError:
+        loc = location.lower()
+    await ctx.send(str('```{}:\n{}```'.format(loc, mdtable)))
 
     
 @bot.command()
