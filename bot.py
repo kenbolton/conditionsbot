@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
+import aiohttp
 import os
 import re
 import discord
-import requests
 import random
 import pandas as pd
 
@@ -48,7 +48,7 @@ async def on_ready():
 
 
 @bot.command()
-async def locations(ctx, location: str=0):
+async def locations(ctx, location: str):
     """ List locations and their available data """
     def _make_msg(key: str, station: str, msg: str):
         msg += "{}:".format(station['name'])
@@ -98,7 +98,7 @@ async def locations(ctx, location: str=0):
 
 
 @bot.command()
-async def all(ctx, location: str=None):
+async def all(ctx, location: str):
     """ Show all of the available data for a location """
     await water(ctx, location=location)
     await alerts(ctx, location=location)
@@ -107,8 +107,7 @@ async def all(ctx, location: str=None):
     await currents(ctx, location=location)
 
 
-# @bot.command()
-async def _water(ctx, location: str=0):
+async def _water(ctx, location: str):
     if not location:
         location = ctx.channel.name
     try:
@@ -130,37 +129,27 @@ async def _water(ctx, location: str=0):
         "siteStatus": "all",
         "format": "json",
     }
-    resp = requests.get(url, params=params)
-    resp.raise_for_status()
-    site_name = resp.json()['value']['timeSeries'][0]['sourceInfo']['siteName']
-    temp_c = resp.json()['value']['timeSeries'][0]['values'][-1]['value'][-1]['value']
-    time = resp.json()['value']['timeSeries'][0]['values'][-1]['value'][-1]['dateTime']
-    temp_f = float(temp_c) * (9/5) + 32
-    return site_name, time, "{:.1f}".format(temp_f), temp_c
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as resp:
+            if resp.status == 200:
+                js = await resp.json()
+                site_name = js['value']['timeSeries'][0]['sourceInfo']['siteName']
+                temp_c = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['value']
+                time = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['dateTime']
+                temp_f = float(temp_c) * (9 / 5) + 32
+                return site_name, time, "{:.1f}".format(temp_f), temp_c
 
 
 @bot.command()
-async def water(ctx, location: str=0):
+async def water(ctx, location: str):
     """ Display the water temperature for a location. """
     site_name, time, temp_f, temp_c = await _water(ctx, location=location)
     msg = "{}\n{}\n{}°F / {}°C".format(site_name, time, temp_f, temp_c)
     await ctx.send(msg)
 
 
-# @bot.command()
-# async def current(ctx, location: str=None):
-#     """ Display the tidal current predictions for a location. """
-#     df = await _currents(ctx, location=location)
-#     text_string = df.to_string()
-#     for row in text_string.split('\n'):
-#         await ctx.send(row)
-#     # for index, row in df.iterrows():
-#     #     print(row)
-#     #     await ctx.send(row)
-
-
 @bot.command()
-async def now(ctx, location: str=None):
+async def now(ctx, location: str):
     """ Pin an alert for the location that combines a bunch of data points. """
     # alerts
     # forecast: analyze air + water temp, alert if winds over ten, high alert over 15
@@ -193,48 +182,22 @@ async def now(ctx, location: str=None):
     if alerts:
         for alert in alerts.reverse():
             await alert.pin()
-# {
-#         "number": 1,
-#         "name": "This Afternoon",
-#         "startTime": "2024-04-09T17:00:00-04:00",
-#         "endTime": "2024-04-09T18:00:00-04:00",
-#         "isDaytime": true,
-#         "temperature": 73,
-#         "temperatureUnit": "F",
-#         "temperatureTrend": "falling",
-#         "probabilityOfPrecipitation": {
-#           "unitCode": "wmoUnit:percent",
-#           "value": null
-#         },
-#         "dewpoint": {
-#           "unitCode": "wmoUnit:degC",
-#           "value": 6.111111111111111
-#         },
-#         "relativeHumidity": {
-#           "unitCode": "wmoUnit:percent",
-#           "value": 38
-#         },
-#         "windSpeed": "2 mph",
-#         "windDirection": "NE",
-#         "icon": "https://api.weather.gov/icons/land/day/sct?size=medium",
-#         "shortForecast": "Mostly Sunny",
-#         "detailedForecast": "Mostly sunny. High near 73, with temperatures falling to around 70 in the afternoon. Northeast wind around 2 mph."
-#       },
+
 
 @bot.command()
-async def alerts(ctx, location: str=None):
+async def alerts(ctx, location: str):
     """ Display the weather forecast for a location. """
     await _alerts(ctx, location=location)
 
 
 @bot.command()
-async def weather(ctx, location: str=None):
+async def weather(ctx, location: str):
     """ Display the weather forecast for a location. """
     await alerts(ctx, location=location)
     await forecast(ctx, location=location)
 
 
-async def _forecast(ctx, location: str=None):
+async def _forecast(ctx, location: str):
     if not location:
         location = ctx.channel.name
     try:
@@ -251,16 +214,17 @@ async def _forecast(ctx, location: str=None):
         'User-Agent': '(bscientific.org, weather@bscientific.org)',
         }
     url = "https://api.weather.gov/gridpoints/{}/forecast".format(station_id)
-    resp = requests.get(url, headers=headers)
-    resp.raise_for_status()
-    return resp
-
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as resp:
+            if resp.status == 200:
+                js = await resp.json()
+                return js
 
 @bot.command()
-async def forecast(ctx, location: str=None):
+async def forecast(ctx, location: str):
     """ Display the weather forecast for a location. """
     resp = await _forecast(ctx, location=location)
-    periods = resp.json()['properties']['periods']
+    periods = resp['properties']['periods']
     content = 'Seven day forecast for {}:\n'.format(STATIONS[location.lower()]['name'])
     for period in periods:
         content += '{}: {}\n'.format(period['name'], period['detailedForecast'])
@@ -268,7 +232,7 @@ async def forecast(ctx, location: str=None):
 
 
 @bot.command()
-async def currents(ctx, location: str=None):
+async def currents(ctx, location: str):
     """ Display the tidal current predictions for a location. """
     if not location:
         location = ctx.channel.name
@@ -285,7 +249,7 @@ async def currents(ctx, location: str=None):
     await ctx.send(str('```{}:\n{}```'.format(loc, mdtable)))
 
 
-async def _currents(ctx, location: str=None):
+async def _currents(ctx, location: str):
     if not location:
         location = ctx.channel.name
     try:
@@ -306,49 +270,73 @@ async def _currents(ctx, location: str=None):
         'range': 12,
         'id': station_id ,
     }
-    resp = requests.get(url, params=params)
-    resp.raise_for_status()
-    csvfile = StringIO(resp.content.decode('utf-8'))
-    df = pd.read_csv(csvfile)
-    return df
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as resp:
+            if resp.status == 200:
+                content = await resp.read()
+                csvfile = StringIO(content.decode('utf-8'))
+                df = pd.read_csv(csvfile)
+                return df
 
 
 @bot.command()
-async def tides(ctx, location: str=None):
+async def tides(ctx, location: str = ''):
     """ Display the tidal height predictions for a location. """
+    async def get_tides(station_id, file_format: str = "csv"):
+        url = 'https://tidesandcurrents.noaa.gov/api/datagetter'
+        begin_date = date.today()
+        end_date = begin_date + timedelta(days=1)
+        begin_date_string = begin_date.strftime('%Y%m%d')
+        end_date_string = end_date.strftime('%Y%m%d')
+        params = {
+            "product": "predictions",
+            "application": "NOS.COOPS.TAC.WL",
+            "begin_date": begin_date_string.replace('-', ''),
+            "end_date": end_date_string.replace('-', ''),
+            "datum": "MLLW",
+            "station": station_id,
+            "time_zone": "lst_ldt",
+            "units": "english",
+            "interval": "hilo",
+            "format": file_format,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params) as resp:
+                if resp.status == 200:
+                    return await resp.read()
+
     if not location:
         location = ctx.channel.name
-    try:
-        station_id = STATIONS[location.lower()]['tides']['id']
-    except KeyError:
-        await ctx.send(
-            '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
-                location.lower(), ''.join(
-                    '\t`{}`\n'.format(n)
-                    for n in STATIONS.keys()
-                    if 'tides' in STATIONS[n].keys())))
-        return
-    url = 'https://tidesandcurrents.noaa.gov/api/datagetter'
-    begin_date = date.today()
-    end_date = begin_date + timedelta(days=1)
-    begin_date = begin_date.strftime('%Y%m%d')
-    end_date = end_date.strftime('%Y%m%d')
-    params = {
-        "product": "predictions",
-        "application": "NOS.COOPS.TAC.WL",
-        "begin_date": begin_date.replace('-', ''),
-        "end_date": end_date.replace('-', ''),
-        "datum": "MLLW",
-        "station": station_id,
-        "time_zone": "lst_ldt",
-        "units": "english",
-        "interval": "hilo",
-        "format": "csv",
-    }
-    resp = requests.get(url, params=params)
-    resp.raise_for_status()
-    csvfile=StringIO(resp.content.decode('utf-8'))
-    df=pd.read_csv(csvfile)
+    if location == 'cold-spring':
+        peekskill_id = STATIONS['peekskill']['tides']['id']
+        peekskill_tides = await get_tides(peekskill_id)
+        peekskill_csvfile = StringIO(peekskill_tides.decode('utf-8'))
+        peekskill = pd.read_csv(peekskill_csvfile)
+        beacon_id = STATIONS['beacon']['tides']['id']
+        beacon_tides = await get_tides(beacon_id)
+        beacon_csvfile = StringIO(beacon_tides.decode('utf-8'))
+        beacon = pd.read_csv(beacon_csvfile)
+        beacon['Date Time'] = pd.to_datetime(beacon['Date Time'])
+        peekskill['Date Time'] = pd.to_datetime(peekskill['Date Time'])
+        date_time = beacon['Date Time'] - (beacon['Date Time'] - peekskill['Date Time']) / 3
+        prediction = (beacon[' Prediction'] + peekskill[' Prediction']) / 2
+        df = pd.DataFrame(beacon[' Type'])
+        df = df.join(prediction)
+        df = df.join(date_time)
+    else:
+        try:
+            station_id = STATIONS[location.lower()]['tides']['id']
+        except KeyError:
+            await ctx.send(
+                '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
+                    location.lower(), ''.join(
+                        '\t`{}`\n'.format(n)
+                        for n in STATIONS.keys()
+                        if 'tides' in STATIONS[n].keys())))
+            return
+        resp = await get_tides(station_id)
+        csvfile = StringIO(resp.decode('utf-8'))
+        df = pd.read_csv(csvfile)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
@@ -360,7 +348,7 @@ async def tides(ctx, location: str=None):
         loc = location.lower()
     await ctx.send(str('```{}:\n{}```'.format(loc, mdtable)))
 
-    
+
 @bot.command()
 async def add(ctx, left: int, right: int):
     """Adds two numbers together."""
@@ -386,7 +374,7 @@ async def choose(ctx, *choices: str):
     await ctx.send(random.choice(choices))
 
 
-async def _alerts(ctx, location: str=None):
+async def _alerts(ctx, location: str):
     alerts = []
     if not location:
         location = ctx.channel.name
@@ -409,36 +397,34 @@ async def _alerts(ctx, location: str=None):
     headers = {
         'User-Agent': '(bscientific.org, weather@bscientific.org)',
         }
-    resp = requests.get(alerts_url, headers=headers)
-    resp.raise_for_status()
-    try:
-        json_obj = resp.json()
-    except AttributeError:
-        pass
-    if not json_obj['features']:
-        alert = await ctx.send('No weather alerts found')
-        alerts.append(alert)
-    for feature in json_obj['features']:
-        try:
-            headline = feature['properties']['headline']
-        except KeyError:
-            headline = ''
-        try:
-            severity = feature['properties']['severity']
-        except KeyError:
-            severity = ''
-        try:
-            description = feature['properties']['description']
-        except KeyError:
-            description = ''
-        alert = await ctx.send(
-            '{}\n{}n{}'.format(
-                headline,
-                severity,
-                description
-            ))
-        alerts.append(alert)
-    return alerts
+    async with aiohttp.ClientSession() as session:
+        async with session.get(alerts_url, headers=headers) as resp:
+            if resp.status == 200:
+                json_obj = await resp.json()
+                if not json_obj['features']:
+                    alert = await ctx.send('No weather alerts found')
+                    alerts.append(alert)
+                for feature in json_obj['features']:
+                    try:
+                        headline = feature['properties']['headline']
+                    except KeyError:
+                        headline = ''
+                    try:
+                        severity = feature['properties']['severity']
+                    except KeyError:
+                        severity = ''
+                    try:
+                        description = feature['properties']['description']
+                    except KeyError:
+                        description = ''
+                    alert = await ctx.send(
+                        '{}\n{}n{}'.format(
+                            headline,
+                            severity,
+                            description
+                        ))
+                    alerts.append(alert)
+                return alerts
 
 
 bot.run(

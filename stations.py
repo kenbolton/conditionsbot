@@ -23,23 +23,22 @@ STATIONS = {
     },
     'cold-spring': {
         'name': 'Cold Spring',
-        'water': '01359165',  # Albany
+        'water': '01374019',  # West Point
         'weather': 'OKX/30,67',
         'currents': {
             'id': 'ACT3726_1',
             'name': 'West Point'
         },
         'tides': {
-            'id': '8518949',  # Peekskill
-            'name': 'Peekskill',
+            'name': 'Cold Spring (calculated from offsets)',
         },
         'latitude': 41.4114,
         'longitude': -73.9543,
     },
     'peekskill': {
         'name': 'Peekskill',
-        'water': '01359165',  # Albany
-        'weather':  'OKX/31,61',
+        'water': '01374019',  # West Point
+        'weather': 'OKX/31,61',
         'tides': {
             'id': '8518949',  # Peekskill
             'name': 'Peekskill',
@@ -88,11 +87,12 @@ STATIONS = {
             'name': 'West Point'
         },
         'weather': 'OKX/30,67',  # Cold Spring
-        'water': '01374019',
+        'water': '01374019',  # West Point
     },
     'piermont': {
         'name': 'Piermont',
-        'water': '01376269',
+        'water': '01376515',  # Piermont
+        # 'water': '01376269',
     },
     'pier84': {
         'name': 'Pier 84',
