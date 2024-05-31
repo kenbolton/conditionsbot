@@ -48,7 +48,7 @@ async def on_ready():
 
 
 @bot.command()
-async def locations(ctx, location: str):
+async def locations(ctx, location: str  = ''):
     """ List locations and their available data """
     def _make_msg(key: str, station: str, msg: str):
         msg += "{}:".format(station['name'])
@@ -98,7 +98,7 @@ async def locations(ctx, location: str):
 
 
 @bot.command()
-async def all(ctx, location: str):
+async def all(ctx, location: str = ''):
     """ Show all of the available data for a location """
     await water(ctx, location=location)
     await alerts(ctx, location=location)
@@ -107,19 +107,7 @@ async def all(ctx, location: str):
     await currents(ctx, location=location)
 
 
-async def _water(ctx, location: str):
-    if not location:
-        location = ctx.channel.name
-    try:
-        station_id = STATIONS[location.lower()]['water']
-    except KeyError:
-        await ctx.send(
-            "`{}` is not a valid water temperature station. Try one of these:\n{}".format(
-                location.lower(), ''.join(
-                    '\t`{}`\n'.format(n)
-                    for n in STATIONS.keys()
-                    if 'water' in STATIONS[n].keys())))
-        return
+async def _water(ctx, station_id: str):
     url = "https://waterservices.usgs.gov/nwis/iv/"
     params = {
         "sites": station_id,
@@ -141,22 +129,46 @@ async def _water(ctx, location: str):
 
 
 @bot.command()
-async def water(ctx, location: str):
+async def water(ctx, location: str = ''):
     """ Display the water temperature for a location. """
-    site_name, time, temp_f, temp_c = await _water(ctx, location=location)
+    if not location:
+        location = ctx.channel.name
+    try:
+        station_id = STATIONS[location.lower()]['water']
+    except KeyError:
+        await ctx.send(
+            "`{}` is not a valid water temperature station. Try one of these:\n{}".format(
+                location.lower(), ''.join(
+                    '\t`{}`\n'.format(n)
+                    for n in STATIONS.keys()
+                    if 'water' in STATIONS[n].keys())))
+        return
+    site_name, time, temp_f, temp_c = await _water(ctx, station_id=station_id)
     msg = "{}\n{}\n{}°F / {}°C".format(site_name, time, temp_f, temp_c)
     await ctx.send(msg)
 
 
 @bot.command()
-async def now(ctx, location: str):
+async def now(ctx, location: str = ''):
     """ Pin an alert for the location that combines a bunch of data points. """
     # alerts
     # forecast: analyze air + water temp, alert if winds over ten, high alert over 15
     # currents
     # tides
+    if not location:
+        location = ctx.channel.name
     alerts = await _alerts(ctx, location=location)
-    site_name, time, temp_f, temp_c = await _water(ctx, location=location)
+    try:
+        station_id = STATIONS[location.lower()]['water']
+    except KeyError:
+        await ctx.send(
+            "`{}` is not a valid water temperature station. Try one of these:\n{}".format(
+                location.lower(), ''.join(
+                    '\t`{}`\n'.format(n)
+                    for n in STATIONS.keys()
+                    if 'water' in STATIONS[n].keys())))
+    else:
+        site_name, time, temp_f, temp_c = await _water(ctx, station_id=station_id)
     forecast = await _forecast(ctx, location=location)
     period = forecast.json()['properties']['periods'][0]
     wind_speed = period["windSpeed"].split(' ')[0]  # [1] = "mph"
@@ -185,19 +197,19 @@ async def now(ctx, location: str):
 
 
 @bot.command()
-async def alerts(ctx, location: str):
+async def alerts(ctx, location: str = ''):
     """ Display the weather forecast for a location. """
     await _alerts(ctx, location=location)
 
 
 @bot.command()
-async def weather(ctx, location: str):
+async def weather(ctx, location: str = ''):
     """ Display the weather forecast for a location. """
     await alerts(ctx, location=location)
     await forecast(ctx, location=location)
 
 
-async def _forecast(ctx, location: str):
+async def _forecast(ctx, location: str = ''):
     if not location:
         location = ctx.channel.name
     try:
@@ -221,7 +233,7 @@ async def _forecast(ctx, location: str):
                 return js
 
 @bot.command()
-async def forecast(ctx, location: str):
+async def forecast(ctx, location: str = ''):
     """ Display the weather forecast for a location. """
     resp = await _forecast(ctx, location=location)
     periods = resp['properties']['periods']
@@ -232,7 +244,7 @@ async def forecast(ctx, location: str):
 
 
 @bot.command()
-async def currents(ctx, location: str):
+async def currents(ctx, location: str = ''):
     """ Display the tidal current predictions for a location. """
     if not location:
         location = ctx.channel.name
@@ -249,7 +261,7 @@ async def currents(ctx, location: str):
     await ctx.send(str('```{}:\n{}```'.format(loc, mdtable)))
 
 
-async def _currents(ctx, location: str):
+async def _currents(ctx, location: str = ''):
     if not location:
         location = ctx.channel.name
     try:
