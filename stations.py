@@ -35,6 +35,36 @@ STATIONS = {
         'latitude': 41.4114,
         'longitude': -73.9543,
     },
+    'athens': {
+        'name': 'Athens',
+        'water': '01359165',
+        'weather': 'ALY/74,45',
+        'currents': {
+            'id': 'HUR0614',
+            'name': 'Hudson',
+        },
+        'tides': {
+            'id': '8518974',
+            'name': 'Hudson',
+        },
+        'latitude': 42.251775,
+        'longitude': -73.787882,
+    },
+    'hudson': {
+        'name': 'Hudson',
+        'water': '01359165',
+        'weather': 'ALY/74,45',
+        'currents': {
+            'id': 'HUR0614',
+            'name': 'Hudson',
+        },
+        'tides': {
+            'id': '8518974',
+            'name': 'Hudson',
+        },
+        'latitude': 42.251775,
+        'longitude': -73.787882,
+    },
     'peekskill': {
         'name': 'Peekskill',
         'water': '01374019',  # West Point
