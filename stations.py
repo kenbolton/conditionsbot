@@ -5,6 +5,9 @@ STATIONS = {
     'albany': {
         'water': '01359165',
         'name': 'Albany',
+        'weather': 'ALY/70,60',
+        'latitdue': '42.75',
+        'longitude': '-73.8',
     },
     'beacon': {
         'name': 'Beacon',
