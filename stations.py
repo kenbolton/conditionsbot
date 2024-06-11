@@ -115,6 +115,9 @@ STATIONS = {
     },
     'west-point': {
         'name': 'West Point',
+        'tides': {
+            'name': 'Cold Spring (calculated from offsets)',
+        },
         'currents': {
             'id': 'ACT3726_1',
             'name': 'West Point'
@@ -125,11 +128,33 @@ STATIONS = {
     'piermont': {
         'name': 'Piermont',
         'water': '01376515',  # Piermont
+        'latitude': '41.0474',
+        'longitude': '-73.9098',
+        'weather': 'OKX/34,51',
+        'currents': {
+            'id': 'HUR0502',
+            'name': 'Tappan Zee Bridge'
+        },
+        'tide': {
+            'name': 'Alpine NJ',
+            'id': '8530095'
+        },
         # 'water': '01376269',
     },
     'pier84': {
         'name': 'Pier 84',
+        'weather': 'OKX/33,38',
+        'latitude': '40.7707',
+        'longitude': '-74.0028',
         'water': '01376515',  # Piermont
+        'tide': {
+            'name': 'Dyckman Street',
+            'id': '8518902'
+        },
+        'current': {
+            'name': 'Pier 92',
+            'id': 'NYH1928'
+        },
     },
     # 'poughkeepsie': {
     #     'name': 'Poughkeepsie',

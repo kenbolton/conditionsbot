@@ -319,7 +319,9 @@ async def tides(ctx, location: str = ''):
 
     if not location:
         location = ctx.channel.name
-    if location == 'cold-spring':
+    if (
+            location == 'cold-spring' or
+            location == 'west-point'):
         peekskill_id = STATIONS['peekskill']['tides']['id']
         peekskill_tides = await get_tides(peekskill_id)
         peekskill_csvfile = StringIO(peekskill_tides.decode('utf-8'))
