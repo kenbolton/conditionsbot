@@ -6,8 +6,8 @@ STATIONS = {
         'water': '01359165',
         'name': 'Albany',
         'weather': 'ALY/70,60',
-        'latitdue': '42.75',
-        'longitude': '-73.8',
+        'latitdue': 42.75,
+        'longitude': -73.8,
     },
     'beacon': {
         'name': 'Beacon',
@@ -67,6 +67,22 @@ STATIONS = {
         },
         'latitude': 42.251775,
         'longitude': -73.787882,
+    },
+    'ossining': {
+        'name': 'Ossining',
+        'water': '01376515',  # Piermont
+        'weather': 'OKX/35,56', # https://api.weather.gov/points/41.1611,-73.8536
+        'currents': {
+            'id': 'ACT3696',
+            'name': 'Ossining'
+        },
+        'tides': {
+            'id': '8518924',
+            'name': 'Haverstraw'
+        },
+        # https://www.openstreetmap.org/search?query=ossining#map=14/41.1611/-73.8536&layers=ND
+        'latitude': 41.1611,
+        'longitude': -73.8536,
     },
     'peekskill': {
         'name': 'Peekskill',
@@ -128,8 +144,8 @@ STATIONS = {
     'piermont': {
         'name': 'Piermont',
         'water': '01376515',  # Piermont
-        'latitude': '41.0474',
-        'longitude': '-73.9098',
+        'latitude': 41.0474,
+        'longitude': -73.9098,
         'weather': 'OKX/34,51',
         'currents': {
             'id': 'HUR0502',
@@ -139,14 +155,14 @@ STATIONS = {
             'name': 'Alpine NJ',
             'id': '8530095'
         },
-        # 'water': '01376269',
     },
     'pier84': {
         'name': 'Pier 84',
         'weather': 'OKX/33,38',
-        'latitude': '40.7707',
-        'longitude': '-74.0028',
-        'water': '01376515',  # Piermont
+        'latitude': 40.7707,
+        'longitude': -74.0028,
+        # Piermont, https://waterdata.usgs.gov/monitoring-location/01376515/#parameterCode=00010&period=P7D&showMedian=true
+        'water': '01376515',
         'tide': {
             'name': 'Dyckman Street',
             'id': '8518902'
