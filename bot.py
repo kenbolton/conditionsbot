@@ -254,7 +254,7 @@ async def currents(ctx, location: str = ''):
             'Date_Time (LST/LDT)': 'Local Time',
             ' Speed (knots)': 'Knots'}, inplace=True)
     df['Local Time'] = pd.to_datetime(df['Local Time'])
-    df['Local Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
+    df['Local Time'] = df['Local Time'].dt.strftime("%m-%d %H:%M")
     df = df.drop(' Event', axis=1)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
