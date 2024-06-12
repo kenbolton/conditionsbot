@@ -351,6 +351,10 @@ async def tides(ctx, location: str = ''):
         resp = await get_tides(station_id)
         csvfile = StringIO(resp.decode('utf-8'))
         df = pd.read_csv(csvfile)
+    df = df.drop(' Type', axis=1)
+    df['Date Time'] = pd.to_datetime(df['Date Time'])
+    df['Date Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
+    df.rename(columns={' Prediction': 'Height'}, inplace=True)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
@@ -360,7 +364,7 @@ async def tides(ctx, location: str = ''):
         loc = STATIONS[location.lower()]['tides']['name']
     except KeyError:
         loc = location.lower()
-    await ctx.send(str('```{}:\n{}```'.format(loc, mdtable)))
+    await ctx.send(str('```{}\n{}: LST/LDT, Height in feet```'.format(mdtable, loc)))
 
 
 @bot.command()
