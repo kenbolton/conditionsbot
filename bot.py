@@ -362,7 +362,7 @@ async def tides(ctx, location: str = ''):
     df = df.drop(' Type', axis=1)
     df['Date Time'] = pd.to_datetime(df['Date Time'])
     df['Date Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
-    df.rename(columns={' Prediction': 'Feet', 'Date Time', 'Local Time'}, inplace=True)
+    df.rename(columns={' Prediction': 'Feet', 'Date Time': 'Local Time'}, inplace=True)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
