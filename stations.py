@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
 
-
+"""
+tides: https://tidesandcurrents.noaa.gov/tide_predictions.html?gid=1407
+currents: https://tidesandcurrents.noaa.gov/noaacurrents/Stations?g=458
+weather w/ lat/lon: https://api.weather.gov/points/<lat>,<lon>
+"""
 STATIONS = {
     'albany': {
         'water': '01359165',
         'name': 'Albany',
         'weather': 'ALY/70,60',
-        'latitdue': 42.75,
-        'longitude': -73.8,
+        'latitdue': 42.6232,
+        'longitude': -73.7556,
+        'tides': {
+            'id': '',
+            'name': 'Port of Albany'
+        },
+        'currents': {
+            'id': 'HUR0618',
+            'name': 'Port of Albany'
+        }
     },
     'beacon': {
         'name': 'Beacon',
         'water': '01374019',  # West Point
         'weather': 'ALY/73,10',
+        # https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=8518934
         'tides': {
             'id': '8518934',
             'name': 'Newburgh'
