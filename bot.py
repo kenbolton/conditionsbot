@@ -251,10 +251,10 @@ async def currents(ctx, location: str = ''):
     df = await _currents(ctx, location=location)
     df.rename(
         columns={
-            'Date_Time (LST/LDT)': 'Date Time',
-            ' Speed (knots)': 'Speed'}, inplace=True)
-    df['Date Time'] = pd.to_datetime(df['Date Time'])
-    df['Date Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
+            'Date_Time (LST/LDT)': 'Local Time',
+            ' Speed (knots)': 'Knots'}, inplace=True)
+    df['Local Time'] = pd.to_datetime(df['Local Time'])
+    df['Local Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
     df = df.drop(' Event', axis=1)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
@@ -265,7 +265,7 @@ async def currents(ctx, location: str = ''):
         loc = STATIONS[location.lower()]['currents']['name']
     except KeyError:
         loc = location.lower()
-    await ctx.send(str('```{}\n{}: LST/LDT, Speed in knots```'.format(
+    await ctx.send(str('```{}\n{} currents predictions```'.format(
         mdtable, loc)))
 
 
@@ -362,7 +362,7 @@ async def tides(ctx, location: str = ''):
     df = df.drop(' Type', axis=1)
     df['Date Time'] = pd.to_datetime(df['Date Time'])
     df['Date Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
-    df.rename(columns={' Prediction': 'Height'}, inplace=True)
+    df.rename(columns={' Prediction': 'Feet', 'Date Time', 'Local Time'}, inplace=True)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
@@ -372,7 +372,7 @@ async def tides(ctx, location: str = ''):
         loc = STATIONS[location.lower()]['tides']['name']
     except KeyError:
         loc = location.lower()
-    await ctx.send(str('```{}\n{}: LST/LDT, Height in feet```'.format(mdtable, loc)))
+    await ctx.send(str('```{}\n{} tidal height predictions```'.format(mdtable, loc)))
 
 
 @bot.command()
