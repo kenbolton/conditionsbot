@@ -249,6 +249,13 @@ async def currents(ctx, location: str = ''):
     if not location:
         location = ctx.channel.name
     df = await _currents(ctx, location=location)
+    df.rename(
+        columns={
+            'Date_Time (LST/LDT)': 'Date Time',
+            ' Speed (knots)': 'Speed'}, inplace=True)
+    df['Date Time'] = pd.to_datetime(df['Date Time'])
+    df['Date Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
+    df = df.drop(' Event', axis=1)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
@@ -258,7 +265,8 @@ async def currents(ctx, location: str = ''):
         loc = STATIONS[location.lower()]['currents']['name']
     except KeyError:
         loc = location.lower()
-    await ctx.send(str('```{}:\n{}```'.format(loc, mdtable)))
+    await ctx.send(str('```{}\n{}: LST/LDT, Speed in knots```'.format(
+        mdtable, loc)))
 
 
 async def _currents(ctx, location: str = ''):
