@@ -175,7 +175,7 @@ async def now(ctx, location: str = ''):
     wind_speed = period["windSpeed"].split(' ')[0]  # [1] = "mph"
     wind_direction = period['windDirection']
     msg = 'Wind is up at {} mph from the {}'.format(wind_speed, wind_direction)
-    if wind_speed > 10:
+    if float(wind_speed) > 10:
         """ this is the good stuff if the currents are right """
         pass
     air_temp = period['temperature']
