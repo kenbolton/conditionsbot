@@ -236,6 +236,8 @@ async def _forecast(ctx, location: str = ''):
 @bot.command()
 async def forecast(ctx, location: str = ''):
     """ Display the weather forecast for a location. """
+    if not location:
+        location = ctx.channel.name
     resp = await _forecast(ctx, location=location)
     periods = resp['properties']['periods']
     content = 'Seven day forecast for {}:\n'.format(STATIONS[location.lower()]['name'])
