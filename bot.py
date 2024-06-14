@@ -179,7 +179,7 @@ async def now(ctx, location: str = ''):
         """ this is the good stuff if the currents are right """
         pass
     air_temp = period['temperature']
-    if air_temp + temp_f < 120:
+    if float(air_temp) + float(temp_f) < 120:
         msg = (
             " + + + + Warning! Cold water temps!! + + + +\n\n"
             "With the air temperature at {}°F the risk of hypothermia is real.\n"
