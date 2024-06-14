@@ -48,7 +48,7 @@ async def on_ready():
 
 
 @bot.command()
-async def locations(ctx, location: str  = ''):
+async def locations(ctx, location: str = ''):
     """ List locations and their available data """
     def _make_msg(key: str, station: str, msg: str):
         msg += "{}:".format(station['name'])
@@ -168,9 +168,10 @@ async def now(ctx, location: str = ''):
                     for n in STATIONS.keys()
                     if 'water' in STATIONS[n].keys())))
     else:
-        site_name, time, temp_f, temp_c = await _water(ctx, station_id=station_id)
-    forecast = await _forecast(ctx, location=location)
-    period = forecast.json()['properties']['periods'][0]
+        site_name, time, temp_f, temp_c = await _water(
+            ctx, station_id=station_id)
+    results = await _forecast(ctx, location=location)
+    period = results['properties']['periods'][0]
     wind_speed = period["windSpeed"].split(' ')[0]  # [1] = "mph"
     wind_direction = period['windDirection']
     msg = 'Wind is up at {} mph from the {}'.format(wind_speed, wind_direction)

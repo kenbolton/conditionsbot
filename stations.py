@@ -25,7 +25,6 @@ STATIONS = {
         'name': 'Beacon',
         'water': '01374019',  # West Point
         'weather': 'ALY/73,10',
-        # https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=8518934
         'tides': {
             'id': '8518934',
             'name': 'Newburgh'
@@ -84,7 +83,7 @@ STATIONS = {
     'ossining': {
         'name': 'Ossining',
         'water': '01376515',  # Piermont
-        'weather': 'OKX/35,56', # https://api.weather.gov/points/41.1611,-73.8536
+        'weather': 'OKX/35,56',
         'currents': {
             'id': 'ACT3696',
             'name': 'Ossining'
@@ -93,7 +92,6 @@ STATIONS = {
             'id': '8518924',
             'name': 'Haverstraw'
         },
-        # https://www.openstreetmap.org/search?query=ossining#map=14/41.1611/-73.8536&layers=ND
         'latitude': 41.1611,
         'longitude': -73.8536,
     },
