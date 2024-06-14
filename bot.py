@@ -193,7 +193,7 @@ async def now(ctx, location: str = ''):
     water_temp = await ctx.send(msg)
     await water_temp.pin()
     if alerts:
-        for alert in alerts.reverse():
+        for alert in alerts:
             await alert.pin()
 
 
