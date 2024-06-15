@@ -210,7 +210,9 @@ async def now(ctx, location: str = ''):
                         '\t`{}`\n'.format(n)
                         for n in STATIONS.keys()
                         if 'tides' in STATIONS[n].keys())))
-        tides_df = await _get_tides(station_id)
+        tides = await _get_tides(station_id)
+        tides_csvfile = StringIO(tides.decode('utf-8'))
+        tides_df = pd.read_csv(tides_csvfile)
     tides_df['Date Time'] = pd.to_datetime(tides_df['Date Time'])
     filtered_tides_df = tides_df.loc[(tides_df['Date Time'] >= datetime.now())]
     tidal_event = filtered_tides_df.head(1)
