@@ -252,7 +252,7 @@ async def now(ctx, location: str = ''):
             events.values[1][1].lstrip(),
             pd.to_datetime(events.values[1][0]).strftime("%H:%M"),
             loc)
-    await ctx.send(
+    await ctx.send(msg)
 
 
 
