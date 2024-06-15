@@ -237,14 +237,23 @@ async def now(ctx, location: str = ''):
         loc = STATIONS[location.lower()]['currents']['name']
     except KeyError:
         loc = location.lower()
-    await ctx.send(
-        '{} of {} knots at {} before {} at {} for {}.'.format(
+    if events.values[0][1].lstrip() == 'Slack':
+        msg = '{} at {} before max {} at {} for {}.'.format(
+            events.values[0][1].lstrip().title(),
+            pd.to_datetime(events.values[0][0]).strftime("%H:%M"),
+            events.values[1][1].lstrip(),
+            pd.to_datetime(events.values[1][0]).strftime("%H:%M"),
+            loc)
+    else:
+        msg = '{} of {} knots at {} before {} at {} for {}.'.format(
             events.values[0][1].lstrip().title(),
             events.values[0][2].lstrip(),
             pd.to_datetime(events.values[0][0]).strftime("%H:%M"),
             events.values[1][1].lstrip(),
             pd.to_datetime(events.values[1][0]).strftime("%H:%M"),
-            loc))
+            loc)
+    await ctx.send(
+
 
 
 @bot.command()
