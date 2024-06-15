@@ -237,7 +237,7 @@ async def now(ctx, location: str = ''):
         loc = STATIONS[location.lower()]['currents']['name']
     except KeyError:
         loc = location.lower()
-    if events.values[0][1].lstrip() == ' Slack':
+    if events.values[0][1].lstrip() == ' slack':
         msg = '{} at {} before max {} at {} for {}.'.format(
             events.values[0][1].lstrip().title(),
             pd.to_datetime(events.values[0][0]).strftime("%H:%M"),
