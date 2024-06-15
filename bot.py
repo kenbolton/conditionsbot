@@ -7,7 +7,7 @@ import discord
 import random
 import pandas as pd
 
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from discord.ext import commands
 
@@ -191,10 +191,58 @@ async def now(ctx, location: str = ''):
         msg = "Water temperature at {}\n{}\n{}°F / {}°C".format(
             site_name, time, temp_f, temp_c)
     water_temp = await ctx.send(msg)
-    await water_temp.pin()
-    if alerts:
-        for alert in alerts:
-            await alert.pin()
+    # await water_temp.pin()
+    # if alerts:
+    #     for alert in alerts:
+    #         await alert.pin()
+    if (
+            location == 'cold-spring' or
+            location == 'west-point'):
+        tides_df = await _get_cold_spring_tides()
+    else:
+        try:
+            station_id = STATIONS[location.lower()]['tides']['id']
+        except KeyError:
+            await ctx.send(
+                '`{}` is not a valid tidal currents station. '
+                'Try one of these:\n{}'.format(
+                    location.lower(), ''.join(
+                        '\t`{}`\n'.format(n)
+                        for n in STATIONS.keys()
+                        if 'tides' in STATIONS[n].keys())))
+        tides_df = await _get_tides(station_id)
+    tides_df['Date Time'] = pd.to_datetime(tides_df['Date Time'])
+    filtered_tides_df = tides_df.loc[(tides_df['Date Time'] >= datetime.now())]
+    tidal_event = filtered_tides_df.head(1)
+    try:
+        loc = STATIONS[location.lower()]['tides']['name']
+    except KeyError:
+        loc = location.lower()
+    await ctx.send(
+        "{} tide {} feet at {} for {}.".format(
+            "High" if tidal_event[' Type'].values[0] == "H" else "Low",
+            tidal_event[' Prediction'].values[0],
+            tidal_event['Date Time'].dt.strftime("%H:%M").values[0],
+            loc
+        ))
+    currents_df = await _currents(ctx, location=location)
+    currents_df['Date_Time (LST/LDT)'] = pd.to_datetime(
+        currents_df['Date_Time (LST/LDT)'])
+    filtered_currents_df = currents_df.loc[
+        (currents_df['Date_Time (LST/LDT)'] >= datetime.now())]
+    events = filtered_currents_df.head(2)
+    try:
+        loc = STATIONS[location.lower()]['currents']['name']
+    except KeyError:
+        loc = location.lower()
+    await ctx.send(
+        '{} of {} knots at {} before {} at {} for {}.'.format(
+            events.values[0][1].lstrip().title(),
+            events.values[0][2].lstrip(),
+            pd.to_datetime(events.values[0][0]).strftime("%H:%M"),
+            events.values[1][1].lstrip(),
+            pd.to_datetime(events.values[1][0]).strftime("%H:%M"),
+            loc))
 
 
 @bot.command()
@@ -240,9 +288,11 @@ async def forecast(ctx, location: str = ''):
         location = ctx.channel.name
     resp = await _forecast(ctx, location=location)
     periods = resp['properties']['periods']
-    content = 'Seven day forecast for {}:\n'.format(STATIONS[location.lower()]['name'])
+    content = 'Seven day forecast for {}:\n'.format(
+        STATIONS[location.lower()]['name'])
     for period in periods:
-        content += '{}: {}\n'.format(period['name'], period['detailedForecast'])
+        content += '{}: {}\n'.format(
+            period['name'], period['detailedForecast'])
     await ctx.send(content)
 
 
@@ -279,7 +329,8 @@ async def _currents(ctx, location: str = ''):
         station_id = STATIONS[location.lower()]['currents']['id']
     except KeyError:
         await ctx.send(
-            '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
+            '`{}` is not a valid tidal currents station. '
+            'Try one of these:\n{}'.format(
                 location.lower(), ''.join(
                     '\t`{}`\n'.format(n)
                     for n in STATIONS.keys()
@@ -291,7 +342,7 @@ async def _currents(ctx, location: str = ''):
         'product': 'currents',
         'date': 'Today',
         'range': 12,
-        'id': station_id ,
+        'id': station_id,
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as resp:
@@ -302,70 +353,81 @@ async def _currents(ctx, location: str = ''):
                 return df
 
 
+async def _get_tides(station_id, file_format: str = "csv"):
+    url = 'https://tidesandcurrents.noaa.gov/api/datagetter'
+    begin_date = date.today()
+    end_date = begin_date + timedelta(days=1)
+    begin_date_string = begin_date.strftime('%Y%m%d')
+    end_date_string = end_date.strftime('%Y%m%d')
+    params = {
+        "product": "predictions",
+        "application": "NOS.COOPS.TAC.WL",
+        "begin_date": begin_date_string.replace('-', ''),
+        "end_date": end_date_string.replace('-', ''),
+        "datum": "MLLW",
+        "station": station_id,
+        "time_zone": "lst_ldt",
+        "units": "english",
+        "interval": "hilo",
+        "format": file_format,
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as resp:
+            if resp.status == 200:
+                return await resp.read()
+
+
+async def _get_cold_spring_tides():
+    peekskill_id = STATIONS['peekskill']['tides']['id']
+    peekskill_tides = await _get_tides(peekskill_id)
+    peekskill_csvfile = StringIO(peekskill_tides.decode('utf-8'))
+    peekskill = pd.read_csv(peekskill_csvfile)
+    beacon_id = STATIONS['beacon']['tides']['id']
+    beacon_tides = await _get_tides(beacon_id)
+    beacon_csvfile = StringIO(beacon_tides.decode('utf-8'))
+    beacon = pd.read_csv(beacon_csvfile)
+    beacon['Date Time'] = pd.to_datetime(beacon['Date Time'])
+    peekskill['Date Time'] = pd.to_datetime(peekskill['Date Time'])
+    date_time = beacon['Date Time'] - (beacon['Date Time'] - peekskill[
+        'Date Time']) / 3
+    prediction = (beacon[' Prediction'] + peekskill[' Prediction']) / 2
+    df = pd.DataFrame(beacon[' Type'])
+    df = df.join(prediction)
+    df = df.join(date_time)
+    return df
+
+
 @bot.command()
 async def tides(ctx, location: str = ''):
     """ Display the tidal height predictions for a location. """
-    async def get_tides(station_id, file_format: str = "csv"):
-        url = 'https://tidesandcurrents.noaa.gov/api/datagetter'
-        begin_date = date.today()
-        end_date = begin_date + timedelta(days=1)
-        begin_date_string = begin_date.strftime('%Y%m%d')
-        end_date_string = end_date.strftime('%Y%m%d')
-        params = {
-            "product": "predictions",
-            "application": "NOS.COOPS.TAC.WL",
-            "begin_date": begin_date_string.replace('-', ''),
-            "end_date": end_date_string.replace('-', ''),
-            "datum": "MLLW",
-            "station": station_id,
-            "time_zone": "lst_ldt",
-            "units": "english",
-            "interval": "hilo",
-            "format": file_format,
-        }
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as resp:
-                if resp.status == 200:
-                    return await resp.read()
-
     if not location:
         location = ctx.channel.name
     if (
             location == 'cold-spring' or
             location == 'west-point'):
-        peekskill_id = STATIONS['peekskill']['tides']['id']
-        peekskill_tides = await get_tides(peekskill_id)
-        peekskill_csvfile = StringIO(peekskill_tides.decode('utf-8'))
-        peekskill = pd.read_csv(peekskill_csvfile)
-        beacon_id = STATIONS['beacon']['tides']['id']
-        beacon_tides = await get_tides(beacon_id)
-        beacon_csvfile = StringIO(beacon_tides.decode('utf-8'))
-        beacon = pd.read_csv(beacon_csvfile)
-        beacon['Date Time'] = pd.to_datetime(beacon['Date Time'])
-        peekskill['Date Time'] = pd.to_datetime(peekskill['Date Time'])
-        date_time = beacon['Date Time'] - (beacon['Date Time'] - peekskill['Date Time']) / 3
-        prediction = (beacon[' Prediction'] + peekskill[' Prediction']) / 2
-        df = pd.DataFrame(beacon[' Type'])
-        df = df.join(prediction)
-        df = df.join(date_time)
+        df = await _get_cold_spring_tides()
     else:
         try:
             station_id = STATIONS[location.lower()]['tides']['id']
         except KeyError:
             await ctx.send(
-                '`{}` is not a valid tidal currents station. Try one of these:\n{}'.format(
+                '`{}` is not a valid tidal currents station. '
+                'Try one of these:\n{}'.format(
                     location.lower(), ''.join(
                         '\t`{}`\n'.format(n)
                         for n in STATIONS.keys()
                         if 'tides' in STATIONS[n].keys())))
             return
-        resp = await get_tides(station_id)
+        resp = await _get_tides(station_id)
         csvfile = StringIO(resp.decode('utf-8'))
         df = pd.read_csv(csvfile)
     df = df.drop(' Type', axis=1)
     df['Date Time'] = pd.to_datetime(df['Date Time'])
     df['Date Time'] = df['Date Time'].dt.strftime("%m-%d %H:%M")
-    df.rename(columns={' Prediction': 'Feet', 'Date Time': 'Local Time'}, inplace=True)
+    df.rename(
+        columns={
+            ' Prediction': 'Feet',
+            'Date Time': 'Local Time'}, inplace=True)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
@@ -375,7 +437,8 @@ async def tides(ctx, location: str = ''):
         loc = STATIONS[location.lower()]['tides']['name']
     except KeyError:
         loc = location.lower()
-    await ctx.send(str('```{}\n{} tidal height predictions```'.format(mdtable, loc)))
+    await ctx.send(
+        str('```{}\n{} tidal height predictions```'.format(mdtable, loc)))
 
 
 @bot.command()
