@@ -399,6 +399,9 @@ async def _get_cold_spring_tides():
     beacon = pd.read_csv(beacon_csvfile)
     beacon['Date Time'] = pd.to_datetime(beacon['Date Time'])
     peekskill['Date Time'] = pd.to_datetime(peekskill['Date Time'])
+    if beacon['Date Time'][0] < peekskill['Date Time'][0]:
+        beacon = beacon.drop(beacon.index[0])
+        beacon = beacon.reset_index(drop=True, inplace=True)
     date_time = beacon['Date Time'] - (beacon['Date Time'] - peekskill[
         'Date Time']) / 3
     prediction = (beacon[' Prediction'] + peekskill[' Prediction']) / 2
