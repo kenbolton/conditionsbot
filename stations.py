@@ -30,7 +30,7 @@ STATIONS = {
             'name': 'Newburgh'
         },
         'currents': {
-            'id': 'HUR0506',
+            'id': 'HUR0506_7',
             'name': 'Newburgh'
         },
         'latitude': 41.5048,
@@ -85,7 +85,7 @@ STATIONS = {
         'water': '01376515',  # Piermont
         'weather': 'OKX/35,56',
         'currents': {
-            'id': 'ACT3696',
+            'id': 'ACT3696',  # TODO fixme
             'name': 'Ossining'
         },
         'tides': {
@@ -104,7 +104,7 @@ STATIONS = {
             'name': 'Peekskill',
         },
         'currents': {
-            'id': 'ACT3711',
+            'id': 'ACT3711',  # TODO fixme
             'name': 'Peekskill',
         },
         'latitude': 41.2931,
@@ -119,7 +119,7 @@ STATIONS = {
             'name': 'Norrie Point',
         },
         'currents': {
-            'id': 'ACT3751',
+            'id': 'ACT3751',  # TODO fixme
             'name': 'Norrie Point',
         },
         'latitude': 41.8323,
@@ -134,7 +134,7 @@ STATIONS = {
             'name': 'Norrie Point',
         },
         'currents': {
-            'id': 'ACT3751',
+            'id': 'ACT3751',  # TODO fixme
             'name': 'Norrie Point',
         },
         'latitude': 41.8323,
@@ -146,7 +146,7 @@ STATIONS = {
             'name': 'Cold Spring (calculated from offsets)',
         },
         'currents': {
-            'id': 'ACT3726_1',
+            'id': 'ACT3726_1',  # TODO fixme
             'name': 'West Point'
         },
         'weather': 'OKX/30,67',  # Cold Spring

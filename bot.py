@@ -228,28 +228,42 @@ async def now(ctx, location: str = ''):
             loc
         ))
     currents_df = await _currents(ctx, location=location)
-    currents_df['Date_Time (LST/LDT)'] = pd.to_datetime(
-        currents_df['Date_Time (LST/LDT)'])
+    print(currents_df)
+    currents_df['Date_Time (LST_LDT)'] = pd.to_datetime(
+        currents_df['Date_Time (LST_LDT)'])
     filtered_currents_df = currents_df.loc[
-        (currents_df['Date_Time (LST/LDT)'] >= datetime.now())]
+        (currents_df['Date_Time (LST_LDT)'] >= datetime.now())]
     events = filtered_currents_df.head(2)
     try:
         loc = STATIONS[location.lower()]['currents']['name']
     except KeyError:
         loc = location.lower()
-    if events.values[0][1].lstrip() == 'slack':
-        msg = '{} at {} before max {} at {} for {}.'.format(
-            events.values[0][1].lstrip().title(),
+    if events.values[0][1] > 0:
+        current_direction = "Flood"
+    elif events.values[0][1] < 0:
+        current_direction = "Ebb"
+    else:
+        current_direction = "Slack"
+    if events.values[1][1] > 0:
+        next_direction = "Flood"
+    elif events.values[1][1] < 0:
+        next_direction = "Ebb"
+    else:
+        next_direction = "Slack"
+    if events.values[0][1] == 0:  # slack!
+        msg = '{} at {} before max {} of {} knots at {} for {}.'.format(
+            current_direction,
             pd.to_datetime(events.values[0][0]).strftime("%H:%M"),
-            events.values[1][1].lstrip(),
+            next_direction.lower(),
+            events.values[1][1],
             pd.to_datetime(events.values[1][0]).strftime("%H:%M"),
             loc)
     else:
         msg = '{} of {} knots at {} before {} at {} for {}.'.format(
-            events.values[0][1].lstrip().title(),
-            events.values[0][2].lstrip(),
+            current_direction,
+            events.values[0][1],
             pd.to_datetime(events.values[0][0]).strftime("%H:%M"),
-            events.values[1][1].lstrip(),
+            events.values[1][1],
             pd.to_datetime(events.values[1][0]).strftime("%H:%M"),
             loc)
     await ctx.send(msg)
@@ -315,11 +329,12 @@ async def currents(ctx, location: str = ''):
     df = await _currents(ctx, location=location)
     df.rename(
         columns={
-            'Date_Time (LST/LDT)': 'Local Time',
+            'Date_Time (LST_LDT)': 'Local Time',
             ' Speed (knots)': 'Knots'}, inplace=True)
     df['Local Time'] = pd.to_datetime(df['Local Time'])
     df['Local Time'] = df['Local Time'].dt.strftime("%m-%d %H:%M")
-    df = df.drop(' Event', axis=1)
+    # df = df.drop(' Event', axis=1)
+    df = df.head(5)
     mdtable = df.to_markdown(tablefmt="grid")
     mdtable = mdtable.replace('+----+', '+')
     mdtable = mdtable.replace('+====+', '+')
@@ -339,21 +354,26 @@ async def _currents(ctx, location: str = ''):
     try:
         station_id = STATIONS[location.lower()]['currents']['id']
     except KeyError:
-        await ctx.send(
-            '`{}` is not a valid tidal currents station. '
-            'Try one of these:\n{}'.format(
-                location.lower(), ''.join(
-                    '\t`{}`\n'.format(n)
-                    for n in STATIONS.keys()
-                    if 'currents' in STATIONS[n].keys())))
-        return
-    url = 'https://tidesandcurrents.noaa.gov/noaacurrents/DownloadPredictions'
+        station_id = location
+        # await ctx.send(
+        #     '`{}` is not a valid tidal currents station. '
+        #     'Try one of these:\n{}'.format(
+        #         location.lower(), ''.join(
+        #             '\t`{}`\n'.format(n)
+        #             for n in STATIONS.keys()
+        #             if 'currents' in STATIONS[n].keys())))
+        # return
+    url = 'https://api.tidesandcurrents.noaa.gov/dpapi/prod/webapi/currentPredictionsDownload'
     params = {
-        'fmt': 'csv',
-        'product': 'currents',
-        'date': 'Today',
-        'range': 12,
         'id': station_id,
+        'start_date': date.today().isoformat(),
+        'range': 1,
+        'date_timeUnits': 'am/pm',
+        'interval': 'MAX_SLACK',
+        'threshold': 'leEq',
+        'time_zone': 'LST_LDT',
+        'units': 1,
+        'format': 'csv',
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as resp:
@@ -361,6 +381,7 @@ async def _currents(ctx, location: str = ''):
                 content = await resp.read()
                 csvfile = StringIO(content.decode('utf-8'))
                 df = pd.read_csv(csvfile)
+                print(df)
                 return df
 
 
