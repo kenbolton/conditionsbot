@@ -122,9 +122,14 @@ async def _water(ctx, station_id: str):
             if resp.status == 200:
                 js = await resp.json()
                 site_name = js['value']['timeSeries'][0]['sourceInfo']['siteName']
-                temp_c = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['value']
+                try:
+                    temp_c = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['value']
+                except IndexError:
+                    temp_c = 'N/A'
+                    temp_f = 'N/A'
+                else:
+                    temp_f = float(temp_c) * (9 / 5) + 32
                 time = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['dateTime']
-                temp_f = float(temp_c) * (9 / 5) + 32
                 return site_name, time, "{:.1f}".format(temp_f), temp_c
 
 
