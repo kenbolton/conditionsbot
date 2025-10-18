@@ -123,7 +123,7 @@ async def _water(ctx, station_id: str):
             if resp.status == 200:
                 js = await resp.json()
                 logging.info("Water data retrieved successfully.")
-                logging.info(f"Water data JSON: {js}")
+                ctx.send(f"Water data JSON: {js}")
                 site_name = js['value']['timeSeries'][0]['sourceInfo']['siteName']
                 try:
                     temp_c = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['value']
