@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import aiohttp
 import os
 import re
@@ -121,6 +122,8 @@ async def _water(ctx, station_id: str):
         async with session.get(url, params=params) as resp:
             if resp.status == 200:
                 js = await resp.json()
+                logging.info("Water data retrieved successfully.")
+                logging.info(f"Water data JSON: {js}")
                 site_name = js['value']['timeSeries'][0]['sourceInfo']['siteName']
                 try:
                     temp_c = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['value']
@@ -129,8 +132,12 @@ async def _water(ctx, station_id: str):
                     temp_f = 'N/A'
                 else:
                     temp_f = float(temp_c) * (9 / 5) + 32
-                time = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['dateTime']
-                return site_name, time, "{:.1f}".format(temp_f), temp_c
+                    temp_f = "{:.1f}".format(temp_f)
+                try:
+                    time = js['value']['timeSeries'][0]['values'][-1]['value'][-1]['dateTime']
+                except IndexError:
+                    time = 'N/A'
+                return site_name, time, temp_f, temp_c
 
 
 @bot.command()
